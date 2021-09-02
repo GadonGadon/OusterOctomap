@@ -26,5 +26,8 @@
 
  
 
+## 참고자료
+1. https://github.com/ouster-lidar/ouster_example
+2. https://github.com/OctoMap/octomap_mapping
 
 
