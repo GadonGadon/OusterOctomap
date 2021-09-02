@@ -22,7 +22,8 @@
  7. `gedit ~/catkin_ws/src/ouster_example/ouster_ros`
  8. sensor_hostname에 허가된 ip주소 입력
  9. udp_dest에 192.168.0.23 입력 
- 10.`roslaunch ouster_ros ouster.launch metadata:=metadata.json` ouster 런치파일 실행
+ 10. `roslaunch ouster_ros ouster.launch metadata:=metadata.json` ouster 런치파일 실행
+
  
 
 
