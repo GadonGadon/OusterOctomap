@@ -20,7 +20,7 @@
 #include "ouster_ros/OSConfigSrv.h"
 #include "ouster_ros/PacketMsg.h"
 #include "ouster_ros/ros.h"
-
+#include <ctime>
 using PacketMsg = ouster_ros::PacketMsg;
 using Cloud = ouster_ros::Cloud;
 using Point = ouster_ros::Point;
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     auto sensor_frame = tf_prefix + "os_sensor";
     auto imu_frame = tf_prefix + "os_imu";
     auto lidar_frame = tf_prefix + "os_lidar";
-    auto main_frame = tf_prefix + "odom";
+    auto main_frame = "odom";
 
     ouster_ros::OSConfigSrv cfg{};
     auto client = nh.serviceClient<ouster_ros::OSConfigSrv>("os_config");
@@ -92,23 +92,32 @@ int main(int argc, char** argv) {
         }
     };
     tf::TransformBroadcaster broadcaster;
-    double testx =0.0;
-    double ax= 0.0,ay= 0.0,az = 0.0;
+    int pre_time, cur_time;
+    double X=0.0,Y=0.0,Z=0.0;
+    double pre_ax = 0.0, pre_ay = 0.0, pre_az = 0.0;
+    double ax = 0.0, ay = 0.0, az = 0.0;
     auto imu_handler = [&](const PacketMsg& p) {
         imu_pub.publish(ouster_ros::packet_to_imu_msg(p, imu_frame, pf));
+        pre_time = cur_time;
+        cur_time = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).header.stamp.nsec;
+        double dt = (cur_time - pre_time)/1000000000.0;
+        pre_ax = ax;    pre_ay = ay;    pre_az = az;
         ax = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).angular_velocity.x;
         ay = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).angular_velocity.y;
         az = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).angular_velocity.z;
         double x = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).linear_acceleration.x;
         double y = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).linear_acceleration.y;
-        //double z = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).linear_acceleration.z;
-        // double x_ = atan(y/sqrt(x*x+z*z));
-        // double y_ = atan(x/sqrt(y*y+z*z));
+        
+        X += dt*(ax+pre_ax)/2;
+        Y += dt*(ay+pre_ay)/2;
+        Z += dt*(az+pre_az)/2;
+        
+        ROS_INFO("X : %lf, Y : %lf, Z : %lf", X, Y, Z);
+        std::cout<<"cur : "<<cur_time<<std::endl;
         broadcaster.sendTransform(
             tf::StampedTransform(
                 tf::Transform(tf::Quaternion(-y/20, x/20, 0, 1), tf::Vector3(0, 0, 0)),
                 ouster_ros::packet_to_imu_msg(p, imu_frame, pf).header.stamp,main_frame, sensor_frame));
-        testx += 0.001;
     };
 
     auto lidar_packet_sub = nh.subscribe<PacketMsg, const PacketMsg&>(
