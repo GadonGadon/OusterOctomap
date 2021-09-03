@@ -91,9 +91,9 @@ int main(int argc, char** argv) {
             }
         }
     };
-  tf::TransformBroadcaster broadcaster;
-  double testx =0.0;
-  double ax= 0.0,ay= 0.0,az = 0.0;
+    tf::TransformBroadcaster broadcaster;
+    double testx =0.0;
+    double ax= 0.0,ay= 0.0,az = 0.0;
     auto imu_handler = [&](const PacketMsg& p) {
         imu_pub.publish(ouster_ros::packet_to_imu_msg(p, imu_frame, pf));
         ax = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).angular_velocity.x;
@@ -101,14 +101,13 @@ int main(int argc, char** argv) {
         az = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).angular_velocity.z;
         double x = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).linear_acceleration.x;
         double y = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).linear_acceleration.y;
-        // double z = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).linear_acceleration.z;
+        //double z = ouster_ros::packet_to_imu_msg(p, imu_frame, pf).linear_acceleration.z;
         // double x_ = atan(y/sqrt(x*x+z*z));
         // double y_ = atan(x/sqrt(y*y+z*z));
         broadcaster.sendTransform(
-      tf::StampedTransform(
-        tf::Transform(tf::Quaternion(-y/20, x/20, 0, 1), tf::Vector3(0, 0, 0)),
-        //tf::Transform(AngularToQuaternion(ax,ay,az), tf::Vector3(0, 0, 0)),
-        ouster_ros::packet_to_imu_msg(p, imu_frame, pf).header.stamp,main_frame, sensor_frame));
+            tf::StampedTransform(
+                tf::Transform(tf::Quaternion(-y/20, x/20, 0, 1), tf::Vector3(0, 0, 0)),
+                ouster_ros::packet_to_imu_msg(p, imu_frame, pf).header.stamp,main_frame, sensor_frame));
         testx += 0.001;
     };
 
@@ -120,8 +119,6 @@ int main(int argc, char** argv) {
     // publish transforms
     tf2_ros::StaticTransformBroadcaster tf_bcast{};
     
-    tf_bcast.sendTransform(ouster_ros::transform_to_tf_msg(
-        info.imu_to_sensor_transform, main_frame, sensor_frame));
     tf_bcast.sendTransform(ouster_ros::transform_to_tf_msg(
         info.imu_to_sensor_transform, sensor_frame, imu_frame));
     tf_bcast.sendTransform(ouster_ros::transform_to_tf_msg(
