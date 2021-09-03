@@ -5,6 +5,7 @@
  - ROS Melodic
 ## 사용장비
  - Ouster OS0-32-G
+ - Intel NUC
 
 ## 기본 세팅
 ### 다운로드, catkin_make
